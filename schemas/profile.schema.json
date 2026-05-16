@@ -1,0 +1,382 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://becivic.be/schemas/profile.schema.json",
+  "title": "Be Civic — Customer-side profile (v1)",
+  "description": "Validates the v1 16-axis customer-side profile.json per privacy.md §8.7.4. All date fields use YYYY-MM month-bucket precision. No identity-bearing fields are permitted; additionalProperties: false enforces the closed set.",
+  "type": "object",
+
+  "required": [
+    "profile_schema_version",
+    "last_updated_at"
+  ],
+
+  "additionalProperties": false,
+
+  "properties": {
+
+    "profile_schema_version": {
+      "type": "integer",
+      "const": 1,
+      "description": "Schema version sentinel. Written on first create and on schema upgrade. Always 1 for v1 conforming profiles."
+    },
+
+    "last_updated_at": {
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp written on every write. Used for staleness detection."
+        },
+        { "type": "null" }
+      ],
+      "description": "ISO 8601 timestamp of the last write, or null when the profile has never been written."
+    },
+
+    "region": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "Flanders",
+            "Wallonia",
+            "Brussels-Capital",
+            "German-speaking-community"
+          ]
+        },
+        { "type": "null" }
+      ],
+      "description": "Belgian administrative region of the customer's commune of residence."
+    },
+
+    "commune_nis5": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{5}$",
+          "description": "NIS5 commune code (5-digit string). No commune name, no address."
+        },
+        { "type": "null" }
+      ]
+    },
+
+    "administration_language": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": ["NL", "FR", "DE"],
+          "description": "Language of the commune's administration, constrained to the commune's official languages."
+        },
+        { "type": "null" }
+      ]
+    },
+
+    "conversation_language": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 8,
+          "description": "BCP 47 language code the harness uses when talking with the user (e.g. 'en', 'fr', 'nl', 'de'). Distinct from administration_language (the commune's official language) and from other_languages (an ordered list with the harness communications language at index 0). conversation_language is the per-session runtime conversation language; other_languages[0] is the persistent preference. Added W23 per W1.4 GAP-2 to document the harness's conversation-language vs administration-language split."
+        },
+        { "type": "null" }
+      ]
+    },
+
+    "other_languages": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 8
+      },
+      "uniqueItems": true,
+      "default": [],
+      "description": "Ordered list of language codes (BCP 47). First entry is the harness communications language."
+    },
+
+    "civic_status": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "single",
+            "cohabitant-legal",
+            "married",
+            "divorced",
+            "widowed"
+          ]
+        },
+        { "type": "null" }
+      ],
+      "description": "Civil status as recognised by Belgian law."
+    },
+
+    "nationality_status": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": ["BE", "EU", "non-EU", "multiple"]
+        },
+        { "type": "null" }
+      ],
+      "description": "Broad nationality category. 'BE' = Belgian only; 'EU' = EU/EEA non-Belgian; 'non-EU' = third-country national; 'multiple' = holds nationalities from more than one of the above groups."
+    },
+
+    "residency_status": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "registered",
+            "registering",
+            "EU-citizen",
+            "non-EU-permit",
+            "asylum",
+            "undocumented"
+          ]
+        },
+        { "type": "null" }
+      ],
+      "description": "Current registration status in the Belgian population register."
+    },
+
+    "residency_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["start", "country_of_last_residence"],
+        "additionalProperties": false,
+        "properties": {
+          "start": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$",
+            "description": "Start of the residency period, YYYY-MM month-bucket precision."
+          },
+          "end": {
+            "oneOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+              },
+              { "type": "null" }
+            ],
+            "description": "End of the residency period (YYYY-MM), or null when the period is ongoing."
+          },
+          "visa_type": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Free-form visa type label (e.g. 'D-visa', 'short-stay C'). No document number."
+          },
+          "permit_type": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Residence permit type (e.g. 'F card', 'B card', 'EU blue card'). No document number."
+          },
+          "country_of_last_residence": {
+            "type": "string",
+            "pattern": "^[a-z]{2}$",
+            "description": "ISO 3166-1 alpha-2 lowercase country code."
+          }
+        }
+      },
+      "description": "Chronological list of residency periods. Periods only — no document numbers."
+    },
+
+    "dependents": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "minor_children_count": {
+              "oneOf": [{ "type": "integer", "minimum": 0 }, { "type": "null" }]
+            },
+            "adult_dependents_count": {
+              "oneOf": [{ "type": "integer", "minimum": 0 }, { "type": "null" }]
+            },
+            "spouse_abroad": {
+              "oneOf": [{ "type": "boolean" }, { "type": "null" }]
+            }
+          }
+        },
+        { "type": "null" }
+      ],
+      "description": "Counts and booleans only; no names."
+    },
+
+    "employment_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["start", "type"],
+        "additionalProperties": false,
+        "properties": {
+          "start": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$",
+            "description": "Start of the employment period, YYYY-MM month-bucket precision."
+          },
+          "end": {
+            "oneOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+              },
+              { "type": "null" }
+            ],
+            "description": "End of the employment period (YYYY-MM), or null when ongoing."
+          },
+          "type": {
+            "type": "string",
+            "enum": ["FT", "PT", "self-employed", "student", "unemployed", "retired"],
+            "description": "Employment type. FT = full-time employee; PT = part-time employee."
+          },
+          "days_per_week": {
+            "oneOf": [{ "type": "integer", "minimum": 0, "maximum": 7 }, { "type": "null" }],
+            "description": "Contracted working days per week, or null when not applicable."
+          },
+          "total_days_estimate": {
+            "oneOf": [{ "type": "integer", "minimum": 0 }, { "type": "null" }],
+            "description": "Estimated total working days in this period, for use in article 12bis economic-participation calculations. No employer names, no ONSS numbers."
+          }
+        }
+      },
+      "description": "Chronological list of employment periods. No employer names, no ONSS numbers."
+    },
+
+    "education_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["start", "level", "country_of_institution"],
+        "additionalProperties": false,
+        "properties": {
+          "start": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$",
+            "description": "Start of the education period, YYYY-MM month-bucket precision."
+          },
+          "end": {
+            "oneOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+              },
+              { "type": "null" }
+            ],
+            "description": "End of the education period (YYYY-MM), or null when ongoing."
+          },
+          "level": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Education level label (e.g. 'secondary', 'higher-education', 'A2-language-certificate'). No institution name, no diploma number."
+          },
+          "country_of_institution": {
+            "type": "string",
+            "pattern": "^[a-z]{2}$",
+            "description": "ISO 3166-1 alpha-2 lowercase country code of the institution."
+          }
+        }
+      },
+      "description": "Chronological list of education periods. No institution names, no diploma numbers."
+    },
+
+    "document_inventory": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "has_eID": {
+              "oneOf": [{ "type": "boolean" }, { "type": "null" }],
+              "description": "Whether the customer holds a Belgian electronic identity card (eID)."
+            },
+            "has_residence_card": {
+              "oneOf": [{ "type": "boolean" }, { "type": "null" }],
+              "description": "Whether the customer holds a Belgian residence permit card (A through M series)."
+            },
+            "has_work_permit": {
+              "oneOf": [{ "type": "boolean" }, { "type": "null" }]
+            },
+            "has_NN": {
+              "oneOf": [{ "type": "boolean" }, { "type": "null" }],
+              "description": "Whether the customer has been assigned a Belgian national registration number (Numéro National / Rijksregisternummer). The number itself MUST NOT appear in this file."
+            },
+            "has_passport_BE": {
+              "oneOf": [{ "type": "boolean" }, { "type": "null" }],
+              "description": "Whether the customer holds a Belgian passport. No passport number."
+            },
+            "has_passport_other": {
+              "oneOf": [{ "type": "boolean" }, { "type": "null" }],
+              "description": "Whether the customer holds a non-Belgian passport. No passport number."
+            },
+            "validity_end_eID": {
+              "oneOf": [
+                { "type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$" },
+                { "type": "null" }
+              ],
+              "description": "Month-bucket expiry of the eID (YYYY-MM), or null."
+            },
+            "validity_end_residence_card": {
+              "oneOf": [
+                { "type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$" },
+                { "type": "null" }
+              ],
+              "description": "Month-bucket expiry of the residence permit card (YYYY-MM), or null."
+            },
+            "validity_end_work_permit": {
+              "oneOf": [
+                { "type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$" },
+                { "type": "null" }
+              ],
+              "description": "Month-bucket expiry of the work permit (YYYY-MM), or null."
+            },
+            "validity_end_passport_BE": {
+              "oneOf": [
+                { "type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$" },
+                { "type": "null" }
+              ],
+              "description": "Month-bucket expiry of the Belgian passport (YYYY-MM), or null."
+            },
+            "validity_end_passport_other": {
+              "oneOf": [
+                { "type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$" },
+                { "type": "null" }
+              ],
+              "description": "Month-bucket expiry of the non-Belgian passport (YYYY-MM), or null."
+            }
+          }
+        },
+        { "type": "null" }
+      ],
+      "description": "Boolean presence flags and YYYY-MM month-bucket expiry dates for documents the customer holds. No document numbers, no full expiry days."
+    },
+
+    "active_procedures": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$",
+        "maxLength": 100
+      },
+      "uniqueItems": true,
+      "default": [],
+      "description": "Kebab-case skill IDs for all ongoing procedures. Cross-references into memory/procedure_progress_*.md files."
+    },
+
+    "transitions_in_progress": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "marriage-planned",
+          "divorce",
+          "address-change"
+        ]
+      },
+      "uniqueItems": true,
+      "default": [],
+      "description": "Life transitions currently in progress. Extensible in future schema versions."
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "profile_schema_version": 1,
+  "last_updated_at": null,
+
+  "region": null,
+  "commune_nis5": null,
+  "administration_language": null,
+  "other_languages": [],
+
+  "civic_status": null,
+  "nationality_status": null,
+
+  "residency_status": null,
+  "residency_history": [],
+
+  "dependents": {
+    "minor_children_count": null,
+    "adult_dependents_count": null,
+    "spouse_abroad": null
+  },
+
+  "employment_history": [],
+  "education_history": [],
+
+  "document_inventory": {
+    "has_eID": null,
+    "has_residence_card": null,
+    "has_work_permit": null,
+    "has_NN": null,
+    "has_passport_BE": null,
+    "has_passport_other": null
+  },
+
+  "active_procedures": [],
+  "transitions_in_progress": []
+}

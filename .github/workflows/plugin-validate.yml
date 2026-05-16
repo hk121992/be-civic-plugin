@@ -1,0 +1,25 @@
+name: Plugin validation
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Official schema validation
+        # Pure static schema check — verified 2026-05-16 to run without
+        # ANTHROPIC_API_KEY and without a prior `claude login`. No API
+        # credits consumed.
+        # If this proves insufficient (e.g. doesn't catch the empirical
+        # Cowork-UI rules in bc-operations/docs/agent-ux/sessions/2026-05-16-plugin-test/
+        # PLUGIN_VALIDATION_RULES.md), add targeted Python/shell checks back
+        # as separate workflow steps.
+        run: claude plugin validate .claude-plugin/plugin.json

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "becivic": {
+      "type": "http",
+      "url": "https://mcp.becivic.be/mcp"
+    }
+  }
+}
