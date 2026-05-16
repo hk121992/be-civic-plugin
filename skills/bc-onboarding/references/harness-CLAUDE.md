@@ -13,10 +13,10 @@ The full harness will cover, in order:
 3. **Exception-checking rule (NEW from retro)** — when a document supports an eligibility claim, check it, then check whether known exceptions apply (centre-des-intérêts carve-out, etc.). Don't let the document override the search for exceptions.
 4. **Session start** — run preamble (via bc-onboarding peer-skill bridge), branch on session type (first_contact / returning / continuing / multi_active), surface pending state, identify procedure via MCP `get_graph` + `read_skill`.
 5. **Conversation ownership** — agent drives, structured questions, name decisions when they arise.
-6. **Profile and memory** — `profile.json` and `memory.md` at the project folder root; routing facts in profile, narrative in memory.
+6. **Profile and memory** — `profile.json` and `MEMORY.md` at the project folder root; routing facts in profile, narrative in memory.
 7. **Recovering from failure** — MCP → HTTPS → WebFetch fallback chain; tell user plainly if library is unreachable; no synthesis of procedure detail from general knowledge.
 8. **Inline tag handling** — VV, Ref, Path, Skill, Observations, Risk. **Every `<Path>` tag encountered triggers `Skill: be-civic:bc-path-traversal` immediately — do not call get_path directly.**
-9. **Document handling** — take only what the procedure needs, archive to `documents/<procedure-id>/`, never write document content to memory.md, **ask user to drag-drop screenshots, not paste inline (NEW from retro).**
+9. **Document handling** — take only what the procedure needs, archive to `documents/<procedure-id>/`, never write document content to MEMORY.md, **ask user to drag-drop screenshots, not paste inline (NEW from retro).**
 10. **Document parking and batch fetching** — park during intake, batch fetch at filing.
 11. **Observations** — six normalised feedback types (concern / amendment / validation / draft / feedback / rating); scrub via `scripts/scrub-layer1.py` before append to `.be-civic/sessions/<session_id>/observations-buffer.jsonl` (under the hidden `.be-civic/` system directory).
 12. **Pivoting between procedures** — save progress to `procedures/<id>/`, observations carry their own skill_id.

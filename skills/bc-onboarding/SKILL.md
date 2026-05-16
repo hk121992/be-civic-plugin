@@ -17,9 +17,9 @@ Invoked by the `be-civic` gate when no Be Civic project folder exists yet. The u
    - Call `mcp__cowork__request_cowork_directory` to let the user pick a folder.
    - Write the harness CLAUDE.md into the folder root from this skill's `references/harness-CLAUDE.md` template.
    - Write the `.be-civic/marker` file (under a hidden `.be-civic/` subdirectory) to identify the folder as a Be Civic project. Source template at `references/project-init/.be-civic/marker`.
-   - Write `profile.json` and `memory.md` at the folder root from the templates at `references/project-init/profile.json` and `references/project-init/memory.md`.
+   - Write `profile.json` and `MEMORY.md` at the folder root from the templates at `references/project-init/profile.json` and `references/project-init/MEMORY.md`.
    - **Do NOT create empty placeholder subfolders** (no `documents/`, `sessions/`, `memory/`, `procedures/` upfront). Those get created lazily by the relevant skills when there's actual content to put in them — `bc-document-handler` creates `documents/<procedure-id>/` when the user uploads a document, the harness creates `.be-civic/sessions/<session-id>/` when the first observation lands, etc.
-   - Keep the project root clean: from the user's sidebar perspective they see only the things they can read and understand (CLAUDE.md, profile.json, memory.md initially; documents/, research-notes/ later as they accumulate). System state (sessions/, observation buffers, pending submissions) lives under `.be-civic/` and stays hidden.
+   - Keep the project root clean: from the user's sidebar perspective they see only the things they can read and understand (CLAUDE.md, profile.json, MEMORY.md initially; documents/, research-notes/ later as they accumulate). System state (sessions/, observation buffers, pending submissions) lives under `.be-civic/` and stays hidden.
    - Confirm to the user: "I set up your Be Civic project at [folder path]. Let me show you what's in it." Brief tour of what each file/folder is for.
 2. **Framing (§1 below).** Delivered exactly once, in this conversation. Captures the privacy + contribution contract before any procedure work.
 3. **Adaptive opening (§ Adaptive opening pattern below).** Acknowledge any intent the user already stated; ask "what brought you here today?" only if no intent is clear yet.
@@ -43,7 +43,7 @@ Skip step 1 (project is already set up). Run steps 2-7 above. At step 8, the use
 Invoked when the be-civic gate detects an existing v1 plugin data dir at `~/.claude/plugins/data/be-civic/` and the user is setting up a project for the first time. Best-effort migration:
 
 1. Run step 1 (project setup) as in `new-project` mode.
-2. Offer to import existing v1 state: read `profile.json`, `memory.md`, `documents/`, `sessions/` from `~/.claude/plugins/data/be-civic/` into the newly-chosen project folder.
+2. Offer to import existing v1 state: read `profile.json`, `MEMORY.md`, `documents/`, `sessions/` from `~/.claude/plugins/data/be-civic/` into the newly-chosen project folder.
 3. Confirm import with the user before copying.
 4. Write a `.migrated-to-<project-path>` marker in the old data dir so the offer doesn't re-fire.
 5. Continue with the rest of onboarding, but skip questions whose answers are already in the imported profile.
@@ -103,13 +103,13 @@ If customer declines: continue, but flag at the first session where a missing ca
 
 Onboarding is the trust-building beat AND the profile-building beat. Capture the **basic-profile fields** per `schemas/profile.schema.json` — those are the fields every Be Civic skill uses, so future skills don't re-ask. Read the schema to know the exact fields, enums, and constraints; do not enumerate them inline here. Use AskUserQuestion for categorical fields per CLAUDE.md §11.
 
-**What to call the customer.** Check `memory.md` first — if a preferred form of address is already there (returning customer, or Cowork memory remembered from a prior session), use it without asking again. Otherwise, ask once: *"What should I call you?"* They can give a first name, an initial, anything. Write the answer to `memory.md` (narrative store, not profile.json — names aren't routing fields). Future sessions, the harness reads it from memory and uses it without re-asking.
+**What to call the customer.** Check `MEMORY.md` first — if a preferred form of address is already there (returning customer, or Cowork memory remembered from a prior session), use it without asking again. Otherwise, ask once: *"What should I call you?"* They can give a first name, an initial, anything. Write the answer to `MEMORY.md` (narrative store, not profile.json — names aren't routing fields). Future sessions, the harness reads it from memory and uses it without re-asking.
 
 **Language preference.** Ask explicitly via AskUserQuestion at the start of onboarding which national language the customer prefers — FR / NL / DE / EN. Two fields land in `profile.json`: `administration_language` (used for filings; must be a language the receiving authority accepts — Brussels-Capital accepts FR/NL, Flanders NL only, Wallonia FR only or DE in the German-speaking communes) and the conversation language (may differ from filing language — the customer may want to talk in EN but file in FR). Confirm both; don't infer from the opening message register alone.
 
 **Profile vs memory — what to write where during onboarding** (the rule that CLAUDE.md §5 sets out, applied here):
 - Schema-defined categorical fields (region, commune NIS5, civic status, residency status, languages, nationality status) → `profile.json`.
-- Volunteered narrative — preferred name, what brought them here in their own words, why this procedure matters to them, things they're worried about, family or work context they mention — → `memory.md`.
+- Volunteered narrative — preferred name, what brought them here in their own words, why this procedure matters to them, things they're worried about, family or work context they mention — → `MEMORY.md`.
 - Identity-shaped data (NN/NISS, exact birthdate, full address, document numbers, full names) → neither. Don't ask; acknowledge briefly if volunteered.
 
 Frame the capture as helping the user ("the more I know about your situation the better I help today and next time we talk"), not as a privacy interrogation. The user should feel the harness is building context with them, not extracting from them.

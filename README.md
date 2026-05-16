@@ -18,7 +18,7 @@ Pre-launch. Iterating in private. Public marketplace listing not yet active.
 ## What lives in the user's project folder, NOT here
 
 - The **harness CLAUDE.md** — written by the onboarding flow into the user's chosen folder. Loaded as session context on every conversation start in that folder. The harness drives the entire session.
-- The user's `profile.json`, `memory.md`, `documents/`, `sessions/`, and `memory/research-notes-*.md` — all customer state.
+- The user's `profile.json`, `MEMORY.md`, `documents/`, `sessions/`, and `memory/research-notes-*.md` — all customer state.
 
 The plugin auto-updates from this repo on every commit. The user's CLAUDE.md is one-time-written by onboarding and stays put unless re-initialised.
 
