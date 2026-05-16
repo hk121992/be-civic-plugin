@@ -70,7 +70,3 @@ The `documents:` block is path-only — no field values, no transcriptions. Exam
 - Validation of whether the document is genuine, valid, in the right format, or sufficient for the procedure. Those calls live in the procedure skill body.
 - Enumerated extraction tables per document type. The model judges per procedure context using the heuristics above.
 - Re-archiving documents already in `documents/`. Check the cross-procedure index first; if present, reuse the existing path and skip the upload.
-
-## Authoring source
-
-Lifts from bootstrap.zip's `skills/becivic/SKILL.md` §8 (discard rule, transparency dialogue, scrub-failure abort). Generalised per the design doc decision 2026-05-13 and the T1.7 keep-as-skill decision recorded in `bc-operations/.claude/tasks/bc-w22/TASKS.md`.

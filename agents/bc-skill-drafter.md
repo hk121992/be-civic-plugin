@@ -1,12 +1,10 @@
 ---
 name: bc-skill-drafter
-description: Drafts new Be Civic procedure skills, or amendments to existing ones, from session research-notes. Spawned by bc-session-close when a user's experience reveals a procedure the catalogue lacks or should change. PLACEHOLDER status.
+description: Drafts new Be Civic procedure skills, or amendments to existing ones, from session research-notes. Spawned by bc-session-close when a user's experience reveals a procedure the catalogue lacks or should change.
 model: opus
 ---
 
-# Be Civic — Skill Drafter (subagent prompt) — PLACEHOLDER
-
-**Status:** placeholder. Authoring per design doc step 7.
+# Be Civic — Skill Drafter (subagent prompt)
 
 **Spawned by:** `bc-session-close` via the Agent tool.
 
@@ -27,7 +25,7 @@ Before running the proposal protocol, decide whether the customer's experience i
 - **Skill-shaped** = a procedure with branching steps, eligibility rules, document chains, statutory grounding. Multi-step. Has Process / Verify / Surprises sections worth writing. Example: "applying for Belgian nationality via the 5-year residence path."
 - **Path-shaped** = a route to a single outcome. A portal flow, a commune desk deeplink, a single form submission. One step (or one decision tree of sources). Example: "obtaining a certificat de résidence avec historique."
 
-If the customer's research-notes describe a path, hand off to `becivic-path-drafter` instead. Do not author a full skill canonical for what should be a path entry. Producing a 12-step skill for a 2-step online form is scope creep and will fail the structural-sections check.
+If the customer's research-notes describe a path, hand off to `bc-path-drafter` instead. Do not author a full skill canonical for what should be a path entry. Producing a 12-step skill for a 2-step online form is scope creep and will fail the structural-sections check.
 
 Reference: `bc-skills/bc-corpus-creator/references/skill-vs-path.md` (operator-side discriminator).
 
@@ -88,7 +86,7 @@ Trust tier: Tier A, **maintainer review required** per S31. Customer reviews dra
 - **No subagent fan-out.** Drafter is the translator-equivalent only — it consumes pre-formed research-notes that the discovery skill built. No researcher / catalogue-extractor / reviewer / grader sub-spawn.
 - **No UID minting.** Empty-uid hard constraint per step 7.
 - **No alpha-to-beta promotion.** Always emits `status: alpha`.
-- **No mid-run AskUserQuestion gates.** Subagent runs to completion and returns; the calling skill (`becivic-session-close`) handles all customer interaction.
+- **No mid-run AskUserQuestion gates.** Subagent runs to completion and returns; the calling skill (`bc-session-close`) handles all customer interaction.
 - **No preflight environment checks.** No BC_DOCS_PATH lookups, no bun-test runs. Worker owns environment integrity.
 
 ## Customer-side input shape (different from maintainer side)
@@ -101,11 +99,3 @@ The drafter consumes a `research-notes-<slug>.md` file that the customer has bui
 
 This is by design, not a defect. The canonical's `status: alpha` lineage reflects this. Validators refine via the consensus protocol post-commit.
 
-## Authoring source
-
-Materially new prompt content. References:
-- `bc-operations/bc-skills/bc-corpus-creator/SKILL.md` (maintainer-side mirror — what NOT to replicate, what discipline transfers).
-- `bc-operations/bc-skills/bc-corpus-creator/references/skill-vs-path.md` (Step 0 discriminator).
-- Spec §15 (skill-drafting protocol).
-- Wire-contract amendment proposal `2026-05-13-submission-provenance.md`.
-- Harness-spec proposal §H.5 and §H.6.

@@ -1,12 +1,10 @@
 ---
 name: bc-path-drafter
-description: Drafts new Be Civic path entries (single-outcome routes like portal flows, commune deeplinks, or single forms), or amendments to existing paths, from session research-notes. Spawned by bc-session-close, or by bc-skill-drafter when content is path-shaped rather than skill-shaped. PLACEHOLDER status.
+description: Drafts new Be Civic path entries (single-outcome routes like portal flows, commune deeplinks, or single forms), or amendments to existing paths, from session research-notes. Spawned by bc-session-close, or by bc-skill-drafter when content is path-shaped rather than skill-shaped.
 model: opus
 ---
 
-# Be Civic — Path Drafter (subagent prompt) — PLACEHOLDER
-
-**Status:** placeholder. Authoring per design doc step 7.
+# Be Civic — Path Drafter (subagent prompt)
 
 **Spawned by:** `bc-session-close` via the Agent tool, OR by `bc-skill-drafter` when Step 0 detects path-shaped content.
 
@@ -100,7 +98,7 @@ Trust tier: Tier A, **maintainer review required** per `protocol.md` path policy
 
 ## What this drafter does NOT do
 
-Same constraints as `becivic-skill-drafter`:
+Same constraints as `bc-skill-drafter`:
 - No git/PR/branch mechanics.
 - No subagent fan-out.
 - No UID minting (PR-CI mints `pth-NNNNN`).

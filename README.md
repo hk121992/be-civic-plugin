@@ -26,12 +26,11 @@ The plugin auto-updates from this repo on every commit. The user's CLAUDE.md is 
 
 In Claude Cowork: open the **Customize** sidebar, browse plugins, find **Be Civic** in the org marketplace, click install.
 
-Tested on Cowork desktop 2026-05-16. See `docs/MAINTENANCE.md` for operator notes.
+Tested on Cowork desktop 2026-05-16.
 
-## Companion repos
+## Companion repo
 
-- `hk121992/be-civic` — the public corpus (bc-docs). Verified Belgian administrative procedures, paths, schemas, public site.
-- `bc-operations` (local-only) — strategy, specs, retrospectives, internal product narrative.
+- `hk121992/be-civic` — the public Be Civic corpus. Verified Belgian administrative procedures, paths, schemas, public site at `becivic.be`. This plugin fetches procedure content from there at runtime via MCP.
 
 ## License
 
