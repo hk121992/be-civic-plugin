@@ -4,7 +4,7 @@
   "description": "Belgian administrative procedures assistant. Walks you through citizenship, residency, commune registration, mutualité enrolment, address change, residence card renewal, BIPL/inburgering integration parcours, apostille, EU multilingual forms, and dossier compilation. Verified library updates live via MCP. Per-user project folder holds the harness and customer state across sessions.",
   "author": {
     "name": "Be Civic",
-    "email": "hkernot@gmail.com"
+    "email": "hello@becivic.be"
   },
   "homepage": "https://becivic.be",
   "repository": "https://github.com/hk121992/be-civic-plugin",
