@@ -1,0 +1,14 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "be-civic",
+  "owner": {
+    "name": "Be Civic"
+  },
+  "description": "Be Civic plugin marketplace — Belgian administrative procedures assistant for Claude.",
+  "plugins": [
+    {
+      "name": "be-civic",
+      "source": "./"
+    }
+  ]
+}

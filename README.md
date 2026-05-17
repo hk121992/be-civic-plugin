@@ -4,7 +4,7 @@ Belgian administrative procedures assistant for Claude Cowork. Installs as a Cow
 
 ## Repo status
 
-Pre-launch. Iterating in private. Public marketplace listing not yet active.
+Pre-launch. Public repo for early testers; not yet listed on the official Anthropic plugin registry.
 
 ## What ships in this plugin
 
@@ -24,7 +24,26 @@ The plugin auto-updates from this repo on every commit. The user's CLAUDE.md is 
 
 ## Install
 
-In Claude Cowork: open the **Customize** sidebar, browse plugins, find **Be Civic** in the org marketplace, click install.
+### Cowork desktop (recommended)
+
+1. Open the **Customize** sidebar.
+2. **Browse plugins → Personal**.
+3. Click **"+"** → **"Add marketplace from GitHub"**.
+4. Paste: `https://github.com/hk121992/be-civic-plugin`
+5. Install **Be Civic** from the catalog.
+
+The plugin auto-updates on every push to this repo.
+
+### Claude Code CLI
+
+```
+/plugin marketplace add hk121992/be-civic-plugin
+/plugin install be-civic
+```
+
+### Cowork desktop, zip-upload fallback
+
+If the marketplace path doesn't work for you (e.g. proxy, network restriction), download the source zip from this repo's [Releases](https://github.com/hk121992/be-civic-plugin/releases) and upload it via Customize → My Uploads.
 
 Tested on Cowork desktop 2026-05-16.
 
@@ -34,4 +53,4 @@ Tested on Cowork desktop 2026-05-16.
 
 ## License
 
-To be set before any public install. Private repo until then.
+MIT — see [LICENSE](LICENSE).
