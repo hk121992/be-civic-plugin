@@ -1,6 +1,6 @@
 ---
 name: be-civic
-description: Gate for Be Civic — Belgian administrative procedures. Use when the user mentions Belgian administration, citizenship, residency, commune registration, mutualité, address change, residence card renewal, BIPL or inburgering integration parcours, apostille, EU multilingual forms, dossier compilation, or any Belgian city or commune in an administrative context. Checks whether the conversation is running inside a Be Civic project folder. If yes, the project CLAUDE.md harness is already driving. If no, walks the user through setting one up via Cowork request_cowork_directory.
+description: Gate for Be Civic — Belgian administrative procedures. Use when the user mentions Belgian administration, citizenship, residency, commune registration, mutualité, address change, residence card renewal, BIPL or inburgering integration parcours, apostille, EU multilingual forms, dossier compilation, or any Belgian city or commune in an administrative context. Classifies the user's intent (procedure, meta-question, off-topic, or no-intent) and routes accordingly. If inside a Be Civic project folder, the project CLAUDE.md harness is already driving — confirms and exits. If no project folder exists and the user has an admin query, invokes bc-onboarding to handle folder setup and onboarding.
 ---
 
 # Be Civic — Gate
