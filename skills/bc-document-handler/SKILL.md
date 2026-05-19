@@ -65,6 +65,12 @@ The `documents:` block is path-only — no field values, no transcriptions. Exam
 - marriage-certificate (BE, archived 2026-05-14): documents/nationality-application/marriage-certificate.pdf
 ```
 
+## Dossier compilation trigger
+
+**After the first archive for a procedure completes,** if the parent procedure declares `application_dossier` as its artefact class, invoke `be-civic:bc-dossier-compilation` in `initial` mode. This produces the early-stage dossier with placeholders so the user sees value before the procedure completes. Don't fire again for subsequent archives in the same procedure — subsequent archives trigger `refresh` mode, which `bc-dossier-compilation` handles itself based on its own state detection.
+
+To check whether this is the first archive for the current procedure: look for any existing dossier file under `documents/dossier/` in the procedure's folder. If none exists, this is the first archive; fire `initial` mode. If one already exists, skip the `initial`-mode invocation (subsequent refresh is handled by `bc-dossier-compilation` on its own trigger).
+
 ## What this skill does NOT own
 
 - Validation of whether the document is genuine, valid, in the right format, or sufficient for the procedure. Those calls live in the procedure skill body.
