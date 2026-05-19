@@ -401,23 +401,30 @@
             "type": "string",
             "enum": [
               "orange",
+              "visa_d",
+              "visa_c",
               "A",
               "B",
               "C",
-              "F",
-              "F_plus",
+              "D",
               "K",
               "L",
+              "F",
+              "F_plus",
               "H",
-              "single_permit",
+              "I",
+              "J",
               "M",
+              "M_plus",
               "N",
-              "visa_d",
-              "visa_c",
+              "E",
+              "E_plus",
+              "EU",
+              "EU_plus",
               "EU_citizen",
               "other"
             ],
-            "description": "Belgian residence card or visa type. EU_citizen = EU/EEA/CH citizen with no residence card requirement."
+            "description": "Belgian residence card or visa type. 23-value enum per the W25.15 card-type enum survey (2026-05-19): replaces the design-doc 16-value draft after Stream G identified 3 material defects. Removed: single_permit (annotation on A/B, not a card type — capture work-route in notes). Added: D (legacy long-term resident, archived format), I + J (intra-corporate transferee cards, live since Dec 2021), M_plus (Brexit-WA permanent variant), E + E_plus (legacy EU registration cards), EU + EU_plus (current EU registration cards, replaced E/E+ in May 2021). Label-correction: F is currently issued (not archived); B is currently issued (not archived). EU_citizen remains the value for EU/EEA/CH citizens present without registering."
           },
           "start_month": {
             "type": "string",
@@ -446,7 +453,7 @@
         },
         "additionalProperties": false
       },
-      "description": "Chronological list of Belgian residence cards and visas held by the customer. Card type is an enum (16 values); dates are YYYY-MM month-bucket. No card numbers, no document identifiers. EU citizens may have a row with card_type=EU_citizen and no start/end dates. Added W25.12."
+      "description": "Chronological list of Belgian residence cards and visas held by the customer. Card type is an enum (23 values per W25.15 survey); dates are YYYY-MM month-bucket. No card numbers, no document identifiers. EU citizens may have a row with card_type=EU_citizen and no start/end dates. Added W25.12; enum synced to W25.15 survey 2026-05-19."
     }
   }
 }
