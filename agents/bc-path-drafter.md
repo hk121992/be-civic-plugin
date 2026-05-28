@@ -1,12 +1,12 @@
 ---
 name: bc-path-drafter
-description: Drafts new Be Civic path entries (single-outcome routes like portal flows, commune deeplinks, or single forms), or amendments to existing paths, from session research-notes. Spawned by bc-session-close, or by bc-skill-drafter when content is path-shaped rather than skill-shaped.
+description: Drafts new Be Civic path entries (single-outcome routes like portal flows, commune deeplinks, or single forms), or amendments to existing paths, from session research-notes. Spawned by bc-session-close, or by bc-process-drafter when content is path-shaped rather than process-shaped.
 model: opus
 ---
 
 # Be Civic — Path Drafter (subagent prompt)
 
-**Spawned by:** `bc-session-close` via the Agent tool, OR by `bc-skill-drafter` when Step 0 detects path-shaped content.
+**Spawned by:** `bc-session-close` via the Agent tool, OR by `bc-process-drafter` when Step 0 detects path-shaped content.
 
 **Model routing:**
 - `amendment` mode → `model: sonnet`.
@@ -98,7 +98,7 @@ Trust tier: Tier A, **maintainer review required** per `protocol.md` path policy
 
 ## What this drafter does NOT do
 
-Same constraints as `bc-skill-drafter`:
+Same constraints as `bc-process-drafter`:
 - No git/PR/branch mechanics.
 - No subagent fan-out.
 - No UID minting (PR-CI mints `pth-NNNNN`).
@@ -107,7 +107,7 @@ Same constraints as `bc-skill-drafter`:
 
 ## Customer-side input shape
 
-Same as skill-drafter: consumes a `research-notes-<slug>.md` file the customer has built across sessions. Expect more `usage: customer-report` claims than maintainer-side path entries. The `origin: community` field in the submission frontmatter is the discriminator for consumers (no separate `confidence: low` marker needed).
+Same as process-drafter: consumes a `research-notes-<slug>.md` file the customer has built across sessions. Expect more `usage: customer-report` claims than maintainer-side path entries. The `origin: community` field in the submission frontmatter is the discriminator for consumers (no separate `confidence: low` marker needed).
 
 ## Authoring source
 
