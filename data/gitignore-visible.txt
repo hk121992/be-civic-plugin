@@ -1,0 +1,9 @@
+*
+!.gitignore
+!CLAUDE.md
+!MEMORY.md
+!.be-civic/
+!.be-civic/marker
+!/*/
+!/*/procedure_progress.md
+!documents/
