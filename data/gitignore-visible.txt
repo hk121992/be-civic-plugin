@@ -6,4 +6,5 @@
 !.be-civic/marker
 !/*/
 !/*/procedure_progress.md
-!documents/
+!/*/memory/
+!/*/memory/research-notes-*.md
