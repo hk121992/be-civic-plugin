@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""preamble.py — Be Civic session-start orchestrator (W33).
+"""preamble.py — Be Civic session-start orchestrator.
 
 Runs every session-start check in dependency order and emits one combined
 stream of `KEY: VALUE` lines on stdout for CLAUDE.md to parse into session
 state.
 
-This file is deliberately split into two clearly-bandered halves (W33.4c):
+This file is deliberately split into two clearly-bandered halves:
 
   ┌─ SUBSTRATE MECHANISM ────────────────────────────────────────────────────┐
   │ Filesystem + git + state-graph plumbing that must run regardless of what  │
@@ -19,13 +19,7 @@ This file is deliberately split into two clearly-bandered halves (W33.4c):
   │ pending-verification surfacing, and the inline profile.json.              │
   └───────────────────────────────────────────────────────────────────────────┘
 
-The split is organisational only — NO behaviour was dropped relative to the
-pre-W33 preamble. The legacy ordering (writable check → session id → orphan
-scan → pending scan → browser scan → profile inline) is preserved inside
-`main()`; the substrate-mechanism steps (surface resolution, migration,
-recovery, registry migration) run between the writable check and the scans.
-
-Surfaces (contract §1 / handbook 40-substrate §4.1):
+Surfaces:
   SUBSTRATE_STATE = ${CLAUDE_PLUGIN_DATA}   — hidden, agent-managed.
   SUBSTRATE_DATA  = visible path via marker  — user-picked folder.
   SUBSTRATE_ROOT  = ${CLAUDE_PLUGIN_ROOT}    — read-only install.
@@ -33,9 +27,8 @@ Surfaces (contract §1 / handbook 40-substrate §4.1):
 Failure semantics: hard-fail on read-only hidden surface (install error). On
 any sub-script error, emit a `<NAME>: probe_failed` marker and continue. The
 schema-migration runner restores the hidden surface from git history on failure
-and emits a single silent operator-alert line (handbook §7.5). If the
-orchestrator itself crashes, emit JIT_FALLBACK so CLAUDE.md discovers
-capabilities just-in-time.
+and emits a single silent operator-alert line. If the orchestrator itself
+crashes, emit JIT_FALLBACK so CLAUDE.md discovers capabilities just-in-time.
 
 Runtime: Python 3 stdlib only. No third-party dependencies.
 Cross-platform: macOS, Windows (native, not WSL), Linux.
@@ -60,10 +53,10 @@ from pathlib import Path
 SCRIPTS_DIR = Path(__file__).resolve().parent
 
 # CURRENT_SCHEMA_VERSION is the substrate schema version THIS plugin build
-# targets (handbook 40-substrate §7.1 `plugin_version`, as an integer). The
-# migration runner compares it to the on-disk `state_version` in version.json
-# and applies the ordered steps in MIGRATION_STEPS between them. Bump this
-# whenever a new migration step is added below.
+# targets (matches the `plugin_version` field in version.json, as an integer).
+# The migration runner compares it to the on-disk `state_version` in
+# version.json and applies the ordered steps in MIGRATION_STEPS between them.
+# Bump this whenever a new migration step is added below.
 CURRENT_SCHEMA_VERSION = 1
 
 # Plugin version string for provenance in version.json (matches plugin.json).
@@ -137,7 +130,7 @@ PREAMBLE_JIT_GUIDANCE: |
     or research-notes files older than this session start, treat as pending.
   - BECIVIC_WIRE: library reads + submissions go over HTTPS via the WebFetch
     tool against `becivic.be/api/*`, Bearer key from `${SUBSTRATE_STATE}/.env`
-    when present (V1 `mcp__becivic__*` is retired — REST is the only surface).
+    when present.
   - CHROME_MCP_CONNECTED: check your own tool list for `mcp__claude_in_chrome__*`.
   - CHROME_INSTALLED: ask the customer once at first browser-needing step
     rather than running a pre-emptive setup walkthrough.
@@ -233,17 +226,17 @@ def _commit_all(repo: Path, message_template: str) -> int:
     is staged; .env is never in it. Never raises."""
     if not _is_git_repo(repo):
         return 0
-    # Identity guard (contract §5 / 40-substrate §6.1): `git add -A` relies on
-    # the .gitignore allowlist to exclude the Identity slot. If `.env` exists
-    # but is NOT yet gitignored (e.g. onboarding wrote the key before the
-    # allowlist), committing would leak the harness key into history. Refuse +
-    # alert rather than risk it. `check-ignore -q` exits 0 iff `.env` is ignored.
+    # Identity guard: `git add -A` relies on the .gitignore allowlist to
+    # exclude the Identity slot. If `.env` exists but is NOT yet gitignored
+    # (e.g. onboarding wrote the key before the allowlist), committing would
+    # leak the harness key into history. Refuse + alert rather than risk it.
+    # `check-ignore -q` exits 0 iff `.env` is ignored.
     if (repo / ".env").exists():
         chk = _git(repo, ["check-ignore", "-q", ".env"])
         if not chk or chk.returncode != 0:
             print(
                 f"OPERATOR_ALERT: .env present but not gitignored in {repo}; "
-                "refusing auto-commit to protect Identity (40-substrate §6.1). "
+                "refusing auto-commit to protect Identity. "
                 "Write the .gitignore allowlist before committing."
             )
             return 0
@@ -277,7 +270,7 @@ def _commit_all(repo: Path, message_template: str) -> int:
 # ----------------------------------------------------------------------------
 
 def emit_surfaces() -> None:
-    """Emit the three substrate surface paths for the harness (contract §1)."""
+    """Emit the three substrate surface paths for the harness."""
     print(f"SUBSTRATE_ROOT: {SUBSTRATE_ROOT}")
     print(f"SUBSTRATE_STATE: {SUBSTRATE_STATE}")
     if SUBSTRATE_DATA is not None:
@@ -290,7 +283,7 @@ def emit_surfaces() -> None:
 
 
 # ----------------------------------------------------------------------------
-# §M4 — version.json read/write + schema-migration runner (W33.1b / §7)
+# §M4 — version.json read/write + schema-migration runner
 # ----------------------------------------------------------------------------
 
 def _version_path() -> Path:
@@ -316,7 +309,7 @@ def read_state_version() -> int:
 
 
 def write_version_stamp(state_version: int) -> None:
-    """Write version.json with the canonical handbook §7.1 shape."""
+    """Write version.json with the canonical shape."""
     vp = _version_path()
     stamp = {
         "state_version": state_version,
@@ -331,16 +324,16 @@ def write_version_stamp(state_version: int) -> None:
 
 # Ordered migration steps. Each entry is (target_version, callable). The
 # callable migrates the on-disk hidden state FROM target_version-1 TO
-# target_version and must be idempotent (handbook §7.4). Empty for the W33
-# baseline (CURRENT_SCHEMA_VERSION == 1 with no prior shipped schema); future
-# schema units append (2, _migrate_to_2), (3, _migrate_to_3), ...
+# target_version and must be idempotent. Empty for the initial baseline
+# (CURRENT_SCHEMA_VERSION == 1 with no prior shipped schema); future schema
+# units append (2, _migrate_to_2), (3, _migrate_to_3), ...
 MIGRATION_STEPS: list[tuple[int, "callable"]] = []
 
 
 def run_schema_migration() -> None:
     """Compare on-disk state_version to CURRENT_SCHEMA_VERSION; run ordered
-    steps between them (handbook §7.3). On failure, restore the hidden surface
-    from its git history and emit a single silent operator-alert line (§7.5).
+    steps between them. On failure, restore the hidden surface from its git
+    history and emit a single silent operator-alert line.
 
     Never raises; never blocks the user."""
     on_disk = read_state_version()
@@ -368,7 +361,7 @@ def run_schema_migration() -> None:
         write_version_stamp(CURRENT_SCHEMA_VERSION)
         print(f"SCHEMA_MIGRATION: applied {on_disk}->{CURRENT_SCHEMA_VERSION}")
     except Exception:
-        # §7.5: auto-restore the hidden surface from git, keep state_version at
+        # Auto-restore the hidden surface from git, keep state_version at
         # the pre-migration value, and page the operator out-of-band. The user
         # gets a non-blocking degraded-mode session.
         _restore_hidden_from_git()
@@ -384,7 +377,7 @@ def run_schema_migration() -> None:
 
 def _restore_hidden_from_git() -> None:
     """Restore the hidden surface working tree from its committed git history
-    (operational rollback per §7.5 step 1). Best-effort; never raises."""
+    (operational rollback). Best-effort; never raises."""
     if not _is_git_repo(SUBSTRATE_STATE):
         return
     # Discard working-tree + index changes back to the last commit. The
@@ -394,15 +387,15 @@ def _restore_hidden_from_git() -> None:
 
 
 # ----------------------------------------------------------------------------
-# §M5 — Recovery sweep (handbook §8.1 / §7.4; contract §5)
+# §M5 — Recovery sweep
 # ----------------------------------------------------------------------------
 
 def run_recovery_sweep() -> None:
     """For each surface repo, commit uncommitted allowlisted changes ONCE as
     `auto: recovery — <N> file(s) modified outside monitor coverage`.
 
-    Catches writes that landed while no monitor was running (crash, monitor
-    not yet started). Emits a count marker. Never raises."""
+    Catches writes that landed while no monitor was running. Emits a count
+    marker. Never raises."""
     total = 0
     repos = [SUBSTRATE_STATE]
     if SUBSTRATE_DATA is not None:
@@ -421,7 +414,7 @@ def run_recovery_sweep() -> None:
 
 
 # ----------------------------------------------------------------------------
-# §M6 — procedures.json registry migration (W33.1c)
+# §M6 — procedures.json registry migration
 # ----------------------------------------------------------------------------
 
 def migrate_procedures_registry() -> None:
@@ -429,9 +422,9 @@ def migrate_procedures_registry() -> None:
     case.json machinery state if the registry is absent but legacy state
     exists.
 
-    Legacy layout (pre-W33): each procedure kept a case.json under the visible
-    surface (e.g. ${SUBSTRATE_DATA}/<slug>/case.json) carrying its own
-    machinery state. V2 hoists a single registry to the hidden surface so the
+    Legacy layout: each procedure kept a case.json under the visible surface
+    (e.g. ${SUBSTRATE_DATA}/<slug>/case.json) carrying its own machinery state.
+    The current layout uses a single registry on the hidden surface so the
     preamble can read every in-flight procedure without walking the visible
     tree. Idempotent: no-op when procedures.json already exists. Never raises.
     """
@@ -457,8 +450,8 @@ def migrate_procedures_registry() -> None:
                 case = json.loads(legacy.read_text(encoding="utf-8"))
             except (OSError, json.JSONDecodeError):
                 continue
-            # Map legacy fields → registry entry. Tolerate both V1 (skill_*) and
-            # already-renamed (process_*) keys.
+            # Map legacy fields → registry entry. Tolerate both legacy (skill_*) and
+            # current (process_*) field names.
             now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
             entries.append(
                 {
@@ -548,10 +541,10 @@ def surface_pending_verification() -> None:
     """Surface a transient ${SUBSTRATE_STATE}/.pending-verification flag.
 
     Written by the onboarding auth flow between POST /api/auth/start-verification
-    and the paste-back POST /api/auth/verify (contract §2). Its presence at
-    session start means a verification ceremony was begun but not completed; the
-    harness should resume it (re-prompt for the magic link) rather than starting
-    onboarding fresh. Transient — not committed (absent from the allowlist)."""
+    and the paste-back POST /api/auth/verify. Its presence at session start means
+    a verification ceremony was begun but not completed; the harness should resume
+    it (re-prompt for the magic link) rather than starting onboarding fresh.
+    Transient — not committed (absent from the allowlist)."""
     flag = SUBSTRATE_STATE / ".pending-verification"
     if not flag.exists():
         print("PENDING_VERIFICATION: none")

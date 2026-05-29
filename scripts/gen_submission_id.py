@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""gen_submission_id.py — client-side submission_id generator (W33 §3).
+"""gen_submission_id.py — client-side submission_id generator.
 
 Usage:
     python3 gen_submission_id.py <issue|validation|feedback|rating>
@@ -26,7 +26,7 @@ import secrets
 import sys
 import time
 
-# submission type -> id prefix (server contract §3).
+# submission type -> id prefix.
 PREFIXES = {
     "issue": "iss",
     "validation": "val",

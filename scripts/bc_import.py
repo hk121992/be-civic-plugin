@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-"""bc_import.py — Be Civic portable-archive importer (W33.4h).
+"""bc_import.py — Be Civic portable-archive importer.
 
 Validates and restores a bc_export bundle on the destination machine.
 
-After activation the user is in the "returning user, needs to re-verify"
-state: profile, events, procedures, and documents are present; the harness
-key (.env) is absent. The session-start preamble will detect the missing key
-and route through bc-onboarding's re-verify / rotate branch.
+By default a bundle carries the user's Identity (the harness key), so after
+activation the user is fully active: profile, events, procedures, documents,
+AND the key are all restored. If the bundle was exported without a key
+(anonymous-tier), the session-start preamble detects the missing key and
+routes through bc-onboarding's verify branch.
 
-Import sequence (per 40-substrate §9.2)
-────────────────────────────────────────
+Import sequence
+────────────────
   1. Receive     — user passes the .tar.gz archive path
   2. Probe       — read manifest.json; check state_version vs receiving plugin
   3. Stage       — unpack to a temp dir (NOT the live surfaces)
@@ -179,7 +180,7 @@ def run_import(
     dry_run: bool,
     non_interactive: bool = False,
 ) -> None:
-    """Full import sequence per 40-substrate §9.2."""
+    """Full import sequence."""
 
     # ── Step 1: Receive ───────────────────────────────────────────────────────
     if not archive.exists():
@@ -272,7 +273,7 @@ def run_import(
             print("\nDRY RUN — verification passed. No files will be written.")
             print(f"  Would restore visible surface to : {data_dest}")
             print(f"  Would restore hidden surface to  : {state_dest}")
-            _print_post_import_guidance(identity_excluded)
+            _print_post_import_guidance(not identity_excluded)
             return
 
         # ── Step 5: Reconcile — check for existing state ──────────────────────
@@ -313,11 +314,17 @@ def run_import(
             sys.exit(1)
 
         # Update the .be-civic/marker on both surfaces so the harness can
-        # cross-reference them (51-cowork §12).
+        # cross-reference them.
         _write_marker(data_dest, state_dest)
 
+        # Restore Identity (the harness key) if the bundle carried it. .env is
+        # gitignored on the hidden surface, so the monitor never commits it.
+        identity_src = tmp_path / "identity" / "env"
+        if identity_src.exists():
+            (state_dest / ".env").write_bytes(identity_src.read_bytes())
+
         print("\nImport complete.")
-        _print_post_import_guidance(identity_excluded)
+        _print_post_import_guidance(not identity_excluded)
 
 
 def _write_marker(data_dest: Path, state_dest: Path) -> None:
@@ -327,7 +334,7 @@ def _write_marker(data_dest: Path, state_dest: Path) -> None:
     hidden_marker_dir.mkdir(parents=True, exist_ok=True)
     (hidden_marker_dir / "marker").write_text(str(data_dest))
 
-    # Visible surface marker is a version stamp (per 40-substrate §9.3).
+    # Visible surface marker is a version stamp.
     visible_marker_dir = data_dest / ".be-civic"
     visible_marker_dir.mkdir(parents=True, exist_ok=True)
     marker_path = visible_marker_dir / "marker"
@@ -335,29 +342,28 @@ def _write_marker(data_dest: Path, state_dest: Path) -> None:
         marker_path.write_text("be-civic-v0.3.0")
 
 
-def _print_post_import_guidance(identity_excluded: bool) -> None:
+def _print_post_import_guidance(identity_in_bundle: bool) -> None:
     print()
     print("=" * 68)
-    print("NEXT STEP — Re-verify your identity")
-    print("=" * 68)
-    print()
-    if identity_excluded:
-        print("Your harness key was NOT included in this bundle (Identity stays")
-        print("machine-bound by design). Your profile, events, procedures, and")
-        print("documents have been restored.")
+    if identity_in_bundle:
+        print("READY — your identity was restored")
+        print("=" * 68)
         print()
-        print("To activate your session on this machine:")
-        print("  1. Open Be Civic in Cowork — the gate skill will detect the")
-        print("     imported state and route you to re-verification.")
-        print("  2. Enter your email; paste the magic link the server sends.")
-        print("  3. Your harness key will be written to .env on this machine.")
+        print("Your harness key, profile, procedures, and documents are all in")
+        print("place. Open Be Civic on this machine and pick up where you left")
+        print("off — no re-verification needed.")
         print()
-        print("Alternatively, if you still have a valid key from another session,")
-        print("rotate it: POST /api/auth/rotate-key (same user ID, new key).")
+        print("If you exported this to move between machines, delete the bundle")
+        print("file now: it contains your key. If the key was rotated or revoked")
+        print("since export, the preamble will surface an auth error — re-verify")
+        print("or rotate to get a fresh one.")
     else:
-        print("This bundle included an Identity (harness key). It has been")
-        print("restored to the hidden surface. Verify it is still valid by")
-        print("opening Be Civic — the preamble will surface any auth errors.")
+        print("NEXT STEP — verify your identity")
+        print("=" * 68)
+        print()
+        print("This bundle carried your data but no harness key. To activate:")
+        print("open Be Civic — the gate detects the imported state and routes")
+        print("you to verification. Enter your email and paste the magic link.")
     print()
     print("=" * 68)
 

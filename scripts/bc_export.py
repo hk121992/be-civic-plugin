@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""bc_export.py — Be Civic portable-archive exporter (W33.4h).
+"""bc_export.py — Be Civic portable-archive exporter.
 
 Bundles both substrate surfaces (visible SUBSTRATE_DATA + hidden SUBSTRATE_STATE)
 into a single tarball that can be restored on another machine via bc_import.py.
@@ -12,8 +12,8 @@ Bundle format
   │   ├── data.bundle        # git bundle of the visible surface (SUBSTRATE_DATA)
   │   └── state.bundle       # git bundle of the hidden surface (SUBSTRATE_STATE)
 
-IDENTITY HANDLING (40-substrate §6.1 / W33 migration contract §1)
-────────────────────────────────────────────────────────────────────
+IDENTITY HANDLING
+─────────────────
 The hidden surface's .env file (harness_key = Identity) is gitignored by the
 hidden surface's .gitignore allowlist. It is NOT in the committed git history.
 A `git bundle` of committed history NATURALLY EXCLUDES .env — this script
@@ -160,14 +160,18 @@ def export(data_path: Path, state_path: Path, out: Path, dry_run: bool) -> None:
     _verify_env_excluded_from_git(state_path, "hidden (SUBSTRATE_STATE)")
 
     version_info = _read_version_json(state_path)
+    env_file = state_path / ".env"
+    env_present = env_file.exists()
 
     if dry_run:
         print("DRY RUN — no file will be written.")
         print(f"  SUBSTRATE_DATA  : {data_path}")
         print(f"  SUBSTRATE_STATE : {state_path}")
         print(f"  version.json    : {version_info}")
-        env_present = (state_path / ".env").exists()
-        print(f"  .env present    : {env_present} (EXCLUDED from bundle — Identity stays on this machine)")
+        if env_present:
+            print("  .env (identity) : present — WILL BE INCLUDED (bundle carries your key)")
+        else:
+            print("  .env (identity) : absent — anonymous-tier export (no key to carry)")
         print("DRY RUN complete. Verification passed.")
         return
 
@@ -190,6 +194,15 @@ def export(data_path: Path, state_path: Path, out: Path, dry_run: bool) -> None:
         data_has_commits = _create_git_bundle(data_path, data_bundle_path, "visible (SUBSTRATE_DATA)")
         state_has_commits = _create_git_bundle(state_path, state_bundle_path, "hidden (SUBSTRATE_STATE)")
 
+        # Identity: .env is gitignored, so it is NOT in the git bundles. Carry it
+        # as a loose file so the bundle works immediately on the destination
+        # machine. The user is warned below that the bundle is credential-bearing
+        # and is responsible for transferring + deleting it safely.
+        identity_dir = tmp_path / "identity"
+        if env_present:
+            identity_dir.mkdir()
+            (identity_dir / "env").write_bytes(env_file.read_bytes())
+
         # ── 4. Write manifest ─────────────────────────────────────────────────
         manifest = {
             "bc_export_version": "1",
@@ -198,11 +211,13 @@ def export(data_path: Path, state_path: Path, out: Path, dry_run: bool) -> None:
             "plugin_version": version_info.get("plugin_version", "unknown"),
             "data_bundle_present": data_has_commits,
             "state_bundle_present": state_has_commits,
-            "identity_excluded": True,
+            "identity_excluded": not env_present,
             "note": (
-                "Identity (harness_key in .env) is NOT in this bundle. "
-                "On the destination machine, re-verify via POST /api/auth/verify "
-                "or rotate via POST /api/auth/rotate-key."
+                "Identity (harness key) IS included as identity/env. Treat this "
+                "bundle like a password."
+                if env_present else
+                "No identity in this bundle (none was set). Verify on the "
+                "destination via the onboarding flow."
             ),
         }
         (tmp_path / "manifest.json").write_text(json.dumps(manifest, indent=2))
@@ -214,24 +229,34 @@ def export(data_path: Path, state_path: Path, out: Path, dry_run: bool) -> None:
                 p = surfaces_dir / name
                 if p.exists():
                     tar.add(p, arcname=f"surfaces/{name}")
+            if env_present:
+                tar.add(identity_dir / "env", arcname="identity/env")
 
-    # ── 6. USER-FACING WARNING (mandatory per 40-substrate §9.1 step 3) ──────
+    # ── 6. USER-FACING WARNING ────────────────────────────────────────────────
     print()
     print("=" * 68)
-    print("IDENTITY WARNING")
-    print("=" * 68)
-    print()
-    print("Your harness key (.env / BECIVIC_HARNESS_KEY) is NOT included in")
-    print("this bundle. Identity stays on THIS machine only.")
-    print()
-    print("On the destination machine you will need to re-verify your email")
-    print("via the Be Civic onboarding flow, or rotate your existing key:")
-    print()
-    print("  POST /api/auth/verify       (new machine, fresh verification)")
-    print("  POST /api/auth/rotate-key   (rotates to a new key, same user ID)")
-    print()
-    print("The bundle is safe to copy or share — it contains no credentials.")
-    print("Your data (profile, events, procedures, documents) IS included.")
+    if env_present:
+        print("IDENTITY INCLUDED — TREAT THIS BUNDLE LIKE A PASSWORD")
+        print("=" * 68)
+        print()
+        print("This bundle CONTAINS your Be Civic identity (your harness key), so")
+        print("it works the moment you import it on another machine — no re-")
+        print("verification needed.")
+        print()
+        print("Anyone who has this file can act as you on Be Civic. It's yours to")
+        print("look after:")
+        print("  - Move it over a channel you trust (not a public link/upload).")
+        print("  - Delete it once you've imported it on the new machine.")
+        print("  - If it leaks, rotate your key from any active session.")
+        print()
+        print("Your data (profile, events, procedures, documents) is included too.")
+    else:
+        print("NO IDENTITY IN THIS BUNDLE")
+        print("=" * 68)
+        print()
+        print("No harness key was set, so this bundle carries only your data")
+        print("(profile, events, procedures, documents). On the destination")
+        print("machine, verify via the onboarding flow to get a key.")
     print()
     print("=" * 68)
     print()
@@ -266,7 +291,7 @@ def _resolve_cowork_paths() -> tuple[Path, Path]:
         sys.exit(1)
 
     marker_content = marker_path.read_text().strip()
-    # Marker format per 51-cowork: either a raw path or a JSON {"visible_path": "..."}
+    # Marker format: either a raw path or a JSON {"visible_path": "..."}
     try:
         meta = json.loads(marker_content)
         data_path = Path(meta["visible_path"])

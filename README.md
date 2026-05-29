@@ -45,12 +45,6 @@ The plugin auto-updates on every push to this repo.
 
 If the marketplace path doesn't work for you (e.g. proxy, network restriction), download the source zip from this repo's [Releases](https://github.com/hk121992/be-civic-plugin/releases) and upload it via Customize → My Uploads.
 
-Tested on Cowork desktop 2026-05-16.
-
-## Companion repo
-
-- `hk121992/be-civic` — the public Be Civic corpus. Verified Belgian administrative procedures, paths, schemas, public site at `becivic.be`. This plugin fetches procedure content from there at runtime via the REST API at `becivic.be/api/*`.
-
 ## License
 
 MIT — see [LICENSE](LICENSE).
