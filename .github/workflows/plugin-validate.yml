@@ -15,35 +15,7 @@ jobs:
         run: npm install -g @anthropic-ai/claude-code
 
       - name: Official schema validation
-        # Pure static schema check — verified 2026-05-16 to run without
-        # ANTHROPIC_API_KEY and without a prior `claude login`. No API
-        # credits consumed.
-        # If this proves insufficient (e.g. doesn't catch the empirical
-        # Cowork-UI rules in bc-operations/docs/agent-ux/sessions/2026-05-16-plugin-test/
-        # PLUGIN_VALIDATION_RULES.md), add targeted Python/shell checks back
-        # as separate workflow steps.
+        # Static manifest validation — no API key or prior `claude login` needed.
+        # The full test suite (monitor, submission-id, script syntax) runs in the
+        # development wrapper repo, which keeps test code out of the shipped plugin.
         run: claude plugin validate .claude-plugin/plugin.json
-
-  tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      # W33: the auto-commit monitor is the only shipping executable and is
-      # Identity-safety-critical (it must never commit `.env`). These tests run
-      # the real git plumbing in temp dirs and must stay green.
-      - name: Monitor unit tests (Node built-in test runner)
-        run: node --test hooks/auto-commit-monitor.test.mjs
-
-      - name: Submission-id generator tests
-        run: python3 scripts/test_gen_submission_id.py
-
-      - name: Python syntax check (preamble + portability + dossier scripts)
-        run: |
-          python3 -m py_compile \
-            scripts/preamble.py \
-            scripts/gen_submission_id.py \
-            scripts/bc_export.py \
-            scripts/bc_import.py \
-            scripts/be_civic_dossier/cover.py \
-            scripts/be_civic_dossier/dossier.py
